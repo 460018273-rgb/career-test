@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 职场本命人格确诊报告</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* 引入一点"发疯"的字体风格 */
+        body { font-family: 'Noto Sans SC', sans-serif; background: #0b1120; color: #e2e8f0; }
+        .hand-font { font-family: 'Ma Shan Zheng', cursive; }
+        
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 10px rgba(96, 165, 250, 0.5), 0 0 20px rgba(96, 165, 250, 0.3);
+        }
+
+        .option-card:hover {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* 隐藏滚动条 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden bg-[url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?q=80&w=2072&auto=format&fit=crop')] bg-cover bg-center bg-no-repeat bg-fixed">
+    <div class="absolute inset-0 bg-slate-900/90 z-0"></div>
+
+    <header class="relative z-10 h-16 flex items-center justify-between px-6 border-b border-white/5">
+        <div class="font-black text-xl tracking-tighter italic text-blue-500">MIND_LAB <span class="text-white not-italic text-xs font-normal opacity-50">v4.0</span></div>
+        <div class="text-xs text-slate-400 bg-white/5 px-3 py-1 rounded-full">已累计确诊 10w+ 人</div>
+    </header>
+
+    <main class="relative z-10 flex-1 flex flex-col items-center justify-center p-4">
+        
+        <div id="start-screen" class="text-center space-y-8 max-w-lg animate-fade-in">
+            <div class="inline-block px-4 py-1 rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 text-xs font-bold mb-2 tracking-widest">
+                ⚠️ 警告：结果过于真实
+            </div>
+            <h1 class="text-5xl md:text-6xl font-black leading-tight text-white">
+                测测你的<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 neon-text">职场出厂设置</span>
+            </h1>
+            <p class="text-slate-400 text-lg font-light">
+                拒绝伪科学。基于 Gallup 优势算法 × MBTI 内核。<br>
+                <span class="text-slate-500 text-sm">（含 25 道灵魂拷问，请放弃这也是一种选项）</span>
+            </p>
+            
+            <button onclick="startQuiz()" class="group relative px-12 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold text-xl transition-all shadow-xl shadow-blue-600/20 overflow-hidden">
+                <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                立即确诊
+            </button>
+        </div>
+
+        <div id="quiz-screen" class="hidden w-full max-w-2xl h-[75vh] flex flex-col glass-panel rounded-3xl overflow-hidden">
+            <div class="w-full bg-slate-800/50 h-1.5">
+                <div id="progress-bar" class="bg-gradient-to-r from-cyan-400 to-blue-600 h-full transition-all duration-300 shadow-[0_0_10px_rgba(34,211,238,0.5)]" style="width: 0%"></div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6 md:p-10 no-scrollbar">
+                <div class="flex justify-between items-end mb-6">
+                    <span class="text-5xl font-black text-white/10 hand-font">Q<span id="q-index">1</span></span>
+                    <span class="text-xs text-blue-400 font-mono tracking-widest">SCENARIO MODE</span>
+                </div>
+                
+                <h2 id="q-text" class="text-2xl md:text-3xl font-bold text-white mb-10 leading-relaxed">...</h2>
+
+                <div class="space-y-4">
+                    <button onclick="selectOption('A')" class="option-card w-full p-6 text-left border-2 border-white/5 rounded-2xl transition-all group bg-white/5">
+                        <span class="text-xs font-bold text-slate-500 group-hover:text-blue-400 mb-1 block uppercase">Option A</span>
+                        <div id="text-a" class="text-lg text-slate-200 group-hover:text-white font-medium">...</div>
+                    </button>
+                    <button onclick="selectOption('B')" class="option-card w-full p-6 text-left border-2 border-white/5 rounded-2xl transition-all group bg-white/5">
+                        <span class="text-xs font-bold text-slate-500 group-hover:text-purple-400 mb-1 block uppercase">Option B</span>
+                        <div id="text-b" class="text-lg text-slate-200 group-hover:text-white font-medium">...</div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="result-screen" class="hidden absolute inset-0 bg-slate-900 z-50 overflow-y-auto">
+            <div class="min-h-screen flex items-center justify-center p-4">
+                <div class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    
+                    <div class="glass-panel rounded-[2rem] p-8 md:p-12 relative overflow-hidden flex flex-col justify-between min-h-[600px]">
+                        <div class="absolute top-0 right-0 w-96 h-96 bg-blue-500/20 rounded-full blur-[100px] -z-10"></div>
+                        <div class="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/20 rounded-full blur-[100px] -z-10"></div>
+
+                        <div>
+                            <div class="flex gap-2 mb-6">
+                                <span id="res-mbti" class="px-3 py-1 bg-white/10 text-white text-xs font-bold rounded backdrop-blur-md border border-white/10">...</span>
+                                <span id="res-zodiac" class="px-3 py-1 bg-white/10 text-yellow-300 text-xs font-bold rounded backdrop-blur-md border border-white/10">...</span>
+                            </div>
+                            
+                            <h1 class="text-6xl font-black text-white mb-2 tracking-tight"><span id="res-title">...</span></h1>
+                            <p id="res-subtitle" class="text-xl text-blue-300 font-medium mb-8">...</p>
+
+                            <div class="relative py-6">
+                                <span class="absolute top-0 left-0 text-6xl text-white/10 font-serif">“</span>
+                                <p id="res-quote" class="text-2xl text-white font-bold italic leading-relaxed relative z-10 px-6">...</p>
+                                <span class="absolute bottom-0 right-0 text-6xl text-white/10 font-serif">”</span>
+                            </div>
+                        </div>
+
+                        <div id="res-tags" class="flex flex-wrap gap-2 mt-8">
+                            </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="glass-panel rounded-3xl p-6">
+                            <h3 class="text-sm font-bold text-slate-400 mb-4 uppercase tracking-widest">Energy Radar</h3>
+                            <div class="aspect-square max-h-80 mx-auto">
+                                <canvas id="radarChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="glass-panel rounded-3xl p-8">
+                            <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                                🧠 确诊报告书
+                            </h3>
+                            <p id="res-desc" class="text-slate-300 leading-relaxed mb-6 text-sm md:text-base">...</p>
+                            
+                            <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+                                <div class="text-red-400 text-xs font-bold mb-1">🚑 职场并发症 (Risk)</div>
+                                <p id="res-risk" class="text-red-200 text-sm">...</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <button onclick="location.reload()" class="flex-1 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition-all">再测一次</button>
+                            <button class="flex-1 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-900/50">保存发朋友圈</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ----------------------------------------------------
+        // 1. 题库升级：25题，加入 MBTI (N/S, J/P) 隐性判断
+        // T=Thinking(战略), E=Executing(执行), I=Influencing(社牛), R=Relating(共情)
+        // ----------------------------------------------------
+        const questions = [
+            // 第一阶段：思维模式 (T vs R)
+            { q: "老板画的大饼，你第一反应是？", a: {t: "打开Excel算一下落地概率，发现是0", v: "T"}, b: {t: "虽然知道是饼，但还是配合表演鼓个掌", v: "R"} },
+            { q: "同事在群里甩锅给你，你会？", a: {t: "截图留证，列出时间线，逻辑碾压", v: "T"}, b: {t: "私聊他：'哥，这么搞大家面子不好看吧'", v: "R"} },
+            { q: "评价一个方案的好坏标准？", a: {t: "逻辑闭环，ROI（投资回报率）高", v: "T"}, b: {t: "团队都认可，大家执行起来不难受", v: "R"} },
+            { q: "如果必须裁掉一名老好人员工。", a: {t: "慈不掌兵，为了团队效率必须走", v: "T"}, b: {t: "极其痛苦，甚至想帮他再争取一下", v: "R"} },
+            { q: "你更受不了哪种领导？", a: {t: "逻辑混乱，朝令夕改的", v: "T"}, b: {t: "冷血无情，把人当耗材用的", v: "R"} },
+
+            // 第二阶段：行动模式 (E vs I)
+            { q: "周五临下班突然来了个急活。", a: {t: "关上门，两小时极速搞定然后下班", v: "E"}, b: {t: "拉个会，把大家摇来一起头脑风暴", v: "I"} },
+            { q: "你是哪种工作状态？", a: {t: "人狠话不多，键盘敲冒烟", v: "E"}, b: {t: "茶水间包打听，公司八卦集散地", v: "I"} },
+            { q: "面对一个全新的困难任务。", a: {t: "先别废话，干了再说，在做中错", v: "E"}, b: {t: "先找资源，看看谁能帮我搞定", v: "I"} },
+            { q: "推销你的方案时。", a: {t: "列出1234点执行细节，证明可行性", v: "E"}, b: {t: "描绘宏大愿景，让大家热血沸腾", v: "I"} },
+            { q: "关于开会。", a: {t: "能不开就不开，发邮件解决", v: "E"}, b: {t: "必须开会，见面聊才有火花", v: "I"} },
+
+            // 第三阶段：MBTI 辅助题 (N直觉 vs S实感) -> 影响 T 的纯度
+            { q: "你更喜欢哪种工作文档？", a: {t: "只有干货和数据结论的 (S倾向)", v: "E"}, b: {t: "有方法论和底层逻辑架构的 (N倾向)", v: "T"} },
+            { q: "对于未来的职业规划。", a: {t: "看好眼前这一步，先把钱赚了", v: "E"}, b: {t: "哪怕现在亏点，也要赌一个未来风口", v: "T"} },
+            
+            // 第四阶段：压力测试 (R vs I)
+            { q: "公司年会上，你通常是？", a: {t: "在角落里默默干饭，希望能早退", v: "R"}, b: {t: "抢麦克风，甚至想上去整一段才艺", v: "I"} },
+            { q: "遇到难搞的甲方爸爸。", a: {t: "情绪稳定，只要钱到位啥姿势都行", v: "R"}, b: {t: "凭借三寸不烂之舌，把他忽悠瘸了", v: "I"} },
+            
+            // 第五阶段：综合情境
+            { q: "如果你的电脑突然蓝屏，文件没存。", a: {t: "深吸一口气，凭记忆重写 (狠人)", v: "E"}, b: {t: "发朋友圈崩溃：'水逆退散！' (求安慰)", v: "I"} },
+            { q: "你觉得工作的意义是？", a: {t: "出卖时间换取金钱的等价交换", v: "T"}, b: {t: "获得成就感和被他人需要", v: "R"} },
+            { q: "周末要加班，你会选择？", a: {t: "在家远程，穿着睡衣效率最高", v: "E"}, b: {t: "去公司，顺便约同事吃个晚饭", v: "R"} },
+            { q: "你的办公桌状态？", a: {t: "极简，只有电脑和水杯", v: "E"}, b: {t: "堆满了手办、零食和解压玩具", v: "I"} },
+            { q: "被领导当众表扬时。", a: {t: "面无表情，内心毫无波澜", v: "T"}, b: {t: "有点不好意思，但心里美滋滋", v: "R"} },
+            { q: "如果可以，你想把谁开除？", a: {t: "那个只会写PPT不干活的", v: "E"}, b: {t: "那个总是制造焦虑和负能量的", v: "I"} },
+            
+            // 补充题，凑够量
+            { q: "你现在的精神状态接近？", a: {t: "心如止水，甚至想去出家", v: "T"}, b: {t: "间歇性踌躇满志，持续性混吃等死", v: "R"} },
+            { q: "同事问你这行代码/方案怎么写。", a: {t: "直接丢给他一个文档链接自己看", v: "T"}, b: {t: "手把手教他，甚至帮他写了", v: "R"} },
+            { q: "面对不合理的KPI。", a: {t: "理据服争，证明这是不合理的", v: "T"}, b: {t: "表面答应，背地里开始投简历", v: "E"} },
+            { q: "你更希望拥有的超能力？", a: {t: "过目不忘，逻辑封神", v: "T"}, b: {t: "人见人爱，搞定所有大佬", v: "I"} },
+            { q: "最后，你觉得自己是？", a: {t: "天选打工人，莫得感情", v: "E"}, b: {t: "有趣的灵魂，被迫谋生", v: "I"} }
+        ];
+
+        // ----------------------------------------------------
+        // 2. 结果库升级：网感化 + 唯一 MBTI 映射
+        // ----------------------------------------------------
+        const profiles = {
+            "T_E": { 
+                title: "高冷操盘手", 
+                subtitle: "战略大脑 × 暴力执行",
+                mbti: "INTJ · 绝命毒师",
+                zodiac: "职场摩羯座",
+                desc: "确诊为：没有感情的杀手。在你眼里，职场没有那么多戏，只有‘逻辑不通’和‘效率低下’。你既能画饼（战略），又能自己把饼做出来（执行）。你是老板最想留住的人，也是同事最怕卷不过的人。",
+                risk: "因为太讲道理，常常被误以为在怼人。容易在这个草台班子世界里因为清醒而感到痛苦。",
+                quote: "“智者不入爱河，建设美丽祖国。别跟我谈感情，直接看数据。”",
+                tags: ["#人狠话不多", "#智性恋天花板", "#去油光波", "#Excel做成艺术品"]
+            },
+            "T_I": { 
+                title: "画饼艺术家", 
+                subtitle: "战略大脑 × 社交牛逼",
+                mbti: "ENTJ · 霸道总裁",
+                zodiac: "职场狮子座",
+                desc: "确诊为：天生的野心家。你不仅能看到风口（战略），还能忽悠...啊不，号召全船的人跟你一起冲。你的嘴就是你的生产力，只要给你一个支点，你甚至想撬动地球。",
+                risk: "落地细节一塌糊涂，容易给团队挖坑。有时候自信过了头，就变成了油腻。",
+                quote: "“我不要你觉得，我要我觉得。听我的，这事儿能成。”",
+                tags: ["#气场两米八", "#CPU大师", "#顶级阳谋", "#我不当第一谁当"]
+            },
+            "T_R": { 
+                title: "幕后读心师", 
+                subtitle: "战略大脑 × 情感链接",
+                mbti: "INFJ · 精神导师",
+                zodiac: "职场天蝎座",
+                desc: "确诊为：手握剧本的旁观者。你极其理智，但又极其懂人性。你总能一眼看穿谁在摸鱼，谁在受委屈。你平时不说话，但一开口就是降维打击。你是团队里的隐形大脑。",
+                risk: "想太多，容易精神内耗。因为看得太透，经常对人类感到失望。",
+                quote: "“我静静地看着你们表演，并预判了你们的预判。”",
+                tags: ["#人间清醒", "#外冷内热", "#直觉准到离谱", "#精神洁癖"]
+            },
+            "E_I": { 
+                title: "人形推土机", 
+                subtitle: "暴力执行 × 社交牛逼",
+                mbti: "ESTP · 华尔街之狼",
+                zodiac: "职场白羊座",
+                desc: "确诊为：行走的多巴胺。你的字典里没有‘内耗’，只有‘搞钱’。你是销售冠军，是攻坚队长。只要目标定了，神挡杀神。你解决问题的速度比制造问题的速度还快。",
+                risk: "跑太快，容易把队友甩丢了。有时候说话不过脑子，容易得罪人而不自知。",
+                quote: "“少整那些虚头巴脑的，干就完了！今晚全场由赵公子买单！”",
+                tags: ["#精力怪兽", "#整顿职场", "#拒绝内耗", "#只要干不死就往死里干"]
+            },
+            "E_R": { 
+                title: "全能大管家", 
+                subtitle: "暴力执行 × 情感链接",
+                mbti: "ISFJ · 守护天使",
+                zodiac: "职场巨蟹座",
+                desc: "确诊为：职场定海神针。你靠谱得让人心疼，既能把活干得漂亮，又能照顾到每个人的情绪。缺了你，公司可能会瘫痪。你是那个永远在收拾烂摊子的人。",
+                risk: "不懂拒绝，容易变成职场老好人（大冤种）。所有的委屈都自己吞了。",
+                quote: "“放着我来吧……没事，我不累。（内心：我太难了）”",
+                tags: ["#靠谱", "#什么都能修", "#职场保姆", "#隐形守护者"]
+            },
+            "I_R": { 
+                title: "社交炼金术", 
+                subtitle: "社交牛逼 × 情感链接",
+                mbti: "ENFP · 快乐修勾",
+                zodiac: "职场双子座",
+                desc: "确诊为：气氛组组长。你上班的主要工作是提供情绪价值。你从不加班，但业绩从不差，因为你靠的是‘刷脸’。哪里有你，哪里就是舞台。你是老板的开心果，同事的解压阀。",
+                risk: "容易被认为不够专业，显得浮躁。三分钟热度，项目做到一半可能就想跑路。",
+                quote: "“上班是为了五险一金，但快乐是自己给的！搞点下午茶吗？”",
+                tags: ["#团宠", "#摸鱼天花板", "#八卦中心", "#自由的灵魂"]
+            }
+        };
+
+        // ----------------------------------------------------
+        // 3. 核心逻辑 (保持不变)
+        // ----------------------------------------------------
+        let step = 0;
+        let scores = { "T": 0, "E": 0, "I": 0, "R": 0 };
+        
+        function startQuiz() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('quiz-screen').classList.add('flex');
+            renderQ();
+        }
+
+        function renderQ() {
+            const q = questions[step];
+            document.getElementById('q-index').innerText = step + 1;
+            document.getElementById('q-text').innerText = q.q;
+            document.getElementById('text-a').innerText = q.a.t;
+            document.getElementById('text-b').innerText = q.b.t;
+            document.getElementById('progress-bar').style.width = ((step + 1) / questions.length * 100) + '%';
+        }
+
+        function selectOption(choice) {
+            const val = choice === 'A' ? questions[step].a.v : questions[step].b.v;
+            scores[val]++;
+            if(step < questions.length - 1) { 
+                step++; 
+                renderQ(); 
+            } else { 
+                showResult(); 
+            }
+        }
+
+        function showResult() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            
+            // 算法：取前两名
+            const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]);
+            let key = `${sorted[0][0]}_${sorted[1][0]}`;
+            if(!profiles[key]) key = `${sorted[1][0]}_${sorted[0][0]}`;
+            // 兜底逻辑：如果是对角线（如 T_R 或 E_I 容易冲突），强制归类
+            const res = profiles[key] || profiles["T_E"]; 
+
+            // 渲染数据
+            document.getElementById('res-title').innerText = res.title;
+            document.getElementById('res-subtitle').innerText = res.subtitle;
+            document.getElementById('res-mbti').innerText = res.mbti;
+            document.getElementById('res-zodiac').innerText = res.zodiac;
+            document.getElementById('res-desc').innerText = res.desc;
+            document.getElementById('res-risk').innerText = res.risk;
+            document.getElementById('res-quote').innerText = res.quote;
+
+            // 渲染标签
+            const tagContainer = document.getElementById('res-tags');
+            tagContainer.innerHTML = res.tags.map(tag => 
+                `<span class="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-slate-300 font-mono">${tag}</span>`
+            ).join('');
+
+            // 渲染全中文图表
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['战略大脑 (T)', '暴力执行 (E)', '社交牛逼 (I)', '情感链接 (R)'], // 全中文标签
+                    datasets: [{
+                        data: [scores.T, scores.E, scores.I, scores.R],
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        borderColor: '#60a5fa',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#60a5fa'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            pointLabels: {
+                                color: '#e2e8f0', // 标签颜色
+                                font: { size: 12, family: "'Noto Sans SC', sans-serif" }
+                            },
+                            ticks: { display: false, backdropColor: 'transparent' }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+    </script>
+    <style>
+        /* 增加动效 */
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fade-in 0.8s ease-out forwards; }
+    </style>
+</body>
+</html>
